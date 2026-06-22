@@ -4,13 +4,14 @@
     Guarded SharePoint document library sync repair toolkit.
 .DESCRIPTION
     Repairs common SharePoint library sync problems on Windows. SharePoint document
-    libraries use the OneDrive sync engine, so the repairs safely reset or restart
-    that engine, rebuild local Office cache data, refresh Explorer integration and
-    repair supporting Windows services.
+    libraries use the OneDrive sync engine, so the repairs reset or restart that
+    engine, rebuild local Office cache data, refresh Explorer integration and repair
+    supporting Windows services.
 .NOTES
     Created by Dewald Pretorius - L2 IT Support Engineer.
-    The tool does not delete cloud content, remove Microsoft 365 accounts or unsync
-    document libraries. Cache folders are moved into timestamped backups.
+    The tool does not delete cloud content or remove Microsoft 365 accounts. A
+    OneDrive reset disconnects all sync connections and starts a full resynchronisation.
+    Cache folders are moved into timestamped backups instead of being deleted.
 #>
 
 [CmdletBinding()]
@@ -23,13 +24,12 @@ param(
     [switch]$RestartWebClient,
     [switch]$RefreshExplorer,
     [switch]$FlushDns,
-    [switch]$OpenOneDriveSettings,
     [switch]$DryRun,
     [string]$OutputPath
 )
 
 $ErrorActionPreference = 'Stop'
-$ScriptVersion = '1.0.0'
+$ScriptVersion = '1.0.1'
 $RunStamp = Get-Date -Format 'yyyyMMdd_HHmmss'
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
@@ -198,10 +198,12 @@ function Invoke-ResetOneDrive {
         Write-Log 'OneDrive.exe was not found.' 'ERROR'
         return
     }
-    if (-not (Confirm-Repair 'Reset the OneDrive sync engine? Cloud files are not deleted, but libraries may resynchronise.' -HighImpact)) { return }
+
+    $warning = 'Reset the OneDrive sync engine? This disconnects every OneDrive and SharePoint sync connection, starts a full resynchronisation and may require folder selections to be configured again.'
+    if (-not (Confirm-Repair $warning -HighImpact)) { return }
 
     if ($DryRun) {
-        Write-Log "Would stop OneDrive, run $oneDriveExe /reset and restart OneDrive." 'DRYRUN'
+        Write-Log "Would stop OneDrive, run $oneDriveExe /reset and restart OneDrive. All sync connections would be rebuilt." 'DRYRUN'
         return
     }
 
@@ -212,7 +214,7 @@ function Invoke-ResetOneDrive {
     if (-not (Get-Process OneDrive -ErrorAction SilentlyContinue)) {
         Start-Process -FilePath $oneDriveExe
     }
-    Write-Log 'OneDrive reset completed. SharePoint libraries may take time to resynchronise.' 'SUCCESS'
+    Write-Log 'OneDrive reset completed. All OneDrive and SharePoint sync connections will perform a full resynchronisation.' 'SUCCESS'
 }
 
 function Invoke-RebuildOfficeFileCache {
@@ -297,21 +299,6 @@ function Invoke-FlushDns {
     Write-Log 'DNS resolver cache flushed.' 'SUCCESS'
 }
 
-function Invoke-OpenOneDriveSettings {
-    $oneDriveExe = Get-OneDriveExe
-    if (-not $oneDriveExe) {
-        Write-Log 'OneDrive.exe was not found.' 'ERROR'
-        return
-    }
-    if ($DryRun) {
-        Write-Log 'Would open OneDrive settings.' 'DRYRUN'
-        return
-    }
-
-    Start-Process -FilePath $oneDriveExe -ArgumentList '/settings'
-    Write-Log 'Opened OneDrive settings.' 'SUCCESS'
-}
-
 function Invoke-AllSafeRepairs {
     Write-Log 'Starting the safe SharePoint sync repair workflow.'
     Invoke-FlushDns
@@ -335,13 +322,12 @@ function Show-Menu {
         Write-Host
         Write-Host ' 1. Run safe SharePoint sync repairs'
         Write-Host ' 2. Restart OneDrive sync engine'
-        Write-Host ' 3. Reset OneDrive sync engine'
+        Write-Host ' 3. Reset OneDrive sync engine (disconnects and rebuilds all sync connections)'
         Write-Host ' 4. Rebuild Office document cache (backed up)'
         Write-Host ' 5. Clear temporary Microsoft 365 web cache'
         Write-Host ' 6. Restart Windows WebClient service'
         Write-Host ' 7. Refresh Windows Explorer sync integration'
         Write-Host ' 8. Flush DNS cache'
-        Write-Host ' 9. Open OneDrive settings'
         Write-Host ' 0. Exit'
         $choice = Read-Host 'Select an option'
 
@@ -355,7 +341,6 @@ function Show-Menu {
                 '6' { Invoke-RestartWebClient }
                 '7' { Invoke-RefreshExplorer }
                 '8' { Invoke-FlushDns }
-                '9' { Invoke-OpenOneDriveSettings }
                 '0' { return }
                 default { Write-Host 'Invalid selection.' -ForegroundColor Yellow }
             }
@@ -375,8 +360,7 @@ Get-SyncSnapshot -Stage 'Before'
 
 $repairSwitches = @(
     $RepairAllSafe, $RestartOneDrive, $ResetOneDrive, $RebuildOfficeFileCache,
-    $ClearTemporaryWebCache, $RestartWebClient, $RefreshExplorer, $FlushDns,
-    $OpenOneDriveSettings
+    $ClearTemporaryWebCache, $RestartWebClient, $RefreshExplorer, $FlushDns
 )
 
 try {
@@ -392,7 +376,6 @@ try {
         if ($RestartWebClient)         { Invoke-RestartWebClient }
         if ($RefreshExplorer)          { Invoke-RefreshExplorer }
         if ($FlushDns)                 { Invoke-FlushDns }
-        if ($OpenOneDriveSettings)     { Invoke-OpenOneDriveSettings }
     }
 } catch {
     Write-Log $_.Exception.Message 'ERROR'
