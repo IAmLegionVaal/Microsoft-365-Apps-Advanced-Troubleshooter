@@ -83,13 +83,12 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ".\Microsoft_365
 Repair options include:
 
 - Restart the OneDrive sync engine
-- Reset the OneDrive sync engine using the supported `/reset` operation
+- Reset the OneDrive sync engine using the Microsoft-supported `/reset` operation
 - Rebuild the local Office document cache by moving it to a timestamped backup
 - Clear temporary Microsoft 365 web cache files
 - Start or restart the Windows WebClient service
 - Restart Windows Explorer to refresh sync status icons and shell integration
 - Flush the DNS resolver cache
-- Open OneDrive settings for account or library review
 - Run a combined safe-repair workflow
 
 Run the repair menu:
@@ -152,8 +151,9 @@ Desktop\SharePoint_Sync_Repair_Logs
 - The main toolkit runs in standard-user mode by default.
 - Repairs that require elevation state that the launcher must be started manually with **Run as administrator**.
 - SharePoint and Office cache repairs move local cache folders into timestamped backups instead of deleting them.
-- The SharePoint repair tool does not remove Microsoft 365 accounts, unsync libraries or delete cloud files.
-- OneDrive reset can trigger a full library resynchronisation and therefore requires the technician to type `REPAIR`.
+- The SharePoint repair tool does not delete cloud content or remove Microsoft 365 accounts.
+- Microsoft states that resetting OneDrive disconnects all sync connections and starts a full synchronisation. Folder selections may need to be configured again after the reset.
+- OneDrive reset therefore requires the technician to type `REPAIR`.
 - Office document cache rebuild requires all Office files to be saved and synchronised first.
 
 ## Author
