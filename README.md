@@ -2,7 +2,7 @@
 
 Created by **Dewald Pretorius**.
 
-A menu-driven PowerShell troubleshooting toolkit for common Microsoft 365 desktop and cloud-connected application issues.
+A menu-driven PowerShell troubleshooting toolkit for common Microsoft 365 desktop and cloud-connected application issues, with guarded repair workflows.
 
 ## Coverage
 
@@ -62,45 +62,100 @@ A menu-driven PowerShell troubleshooting toolkit for common Microsoft 365 deskto
 - Office web apps not loading
 - Authentication loops and wrong-account issues
 
-## Features
+## Main troubleshooting toolkit
 
-- Self-unblocking BAT launcher
-- Self-unblocking PowerShell script
-- No automatic administrator elevation
-- Timestamped diagnostic reports
-- Connectivity testing
-- Guided least-disruptive troubleshooting
-- SFC and DISM options when manually elevated
-- Clear attribution to Dewald Pretorius
-
-## Run
-
-1. Download or clone the repository.
-2. Keep the BAT and PS1 files in the same folder.
-3. Double-click:
+Run:
 
 ```text
 Launch_Microsoft_365_Troubleshooter.bat
 ```
 
-The first launch of a downloaded BAT file can still display one Windows security warning because Windows evaluates the file before its internal unblock command runs. After approving it once, the launcher removes the downloaded-file marker from itself and the PowerShell script for future launches from that folder.
-
-## Manual PowerShell launch
+Or launch manually:
 
 ```powershell
 powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File ".\Microsoft_365_Apps_Advanced_Troubleshooter.ps1"
 ```
 
+## Standalone SharePoint library sync repair
+
+`SharePoint_Sync_Repair_Toolkit.ps1` performs actual client-side repairs for SharePoint document libraries. SharePoint libraries use the OneDrive sync engine on Windows, so the tool repairs both the sync engine and its supporting Office and Windows components.
+
+Repair options include:
+
+- Restart the OneDrive sync engine
+- Reset the OneDrive sync engine using the supported `/reset` operation
+- Rebuild the local Office document cache by moving it to a timestamped backup
+- Clear temporary Microsoft 365 web cache files
+- Start or restart the Windows WebClient service
+- Restart Windows Explorer to refresh sync status icons and shell integration
+- Flush the DNS resolver cache
+- Open OneDrive settings for account or library review
+- Run a combined safe-repair workflow
+
+Run the repair menu:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File .\SharePoint_Sync_Repair_Toolkit.ps1
+```
+
+Preview repairs without changing the workstation:
+
+```powershell
+.\SharePoint_Sync_Repair_Toolkit.ps1 -RepairAllSafe -DryRun
+```
+
+Run selected repairs:
+
+```powershell
+.\SharePoint_Sync_Repair_Toolkit.ps1 -RestartOneDrive -FlushDns -RefreshExplorer
+.\SharePoint_Sync_Repair_Toolkit.ps1 -ResetOneDrive
+.\SharePoint_Sync_Repair_Toolkit.ps1 -RebuildOfficeFileCache
+```
+
+A double-click launcher is included:
+
+```text
+Launch_SharePoint_Sync_Repair_Toolkit.bat
+```
+
+## Features
+
+- Self-unblocking BAT launchers
+- Self-unblocking PowerShell scripts
+- No automatic administrator elevation
+- Timestamped diagnostic reports
+- Before-and-after JSON repair snapshots
+- Recoverable timestamped cache backups
+- Connectivity testing
+- Guided least-disruptive troubleshooting
+- Explicit confirmation before repairs
+- `-DryRun` support for the standalone SharePoint sync repair tool
+- SFC and DISM options when manually elevated
+- Clear attribution to Dewald Pretorius
+
 ## Logs
 
-Reports are written to:
+The main toolkit writes reports to:
 
 ```text
 Desktop\Microsoft_365_Troubleshooter_Logs
 ```
 
+The standalone SharePoint sync repair tool writes logs and backups to:
+
+```text
+Desktop\SharePoint_Sync_Repair_Logs
+```
+
 ## Safety
 
-The toolkit runs in standard-user mode by default. Repairs that require elevation clearly state that the launcher must be started manually with **Run as administrator**.
+- The main toolkit runs in standard-user mode by default.
+- Repairs that require elevation state that the launcher must be started manually with **Run as administrator**.
+- SharePoint and Office cache repairs move local cache folders into timestamped backups instead of deleting them.
+- The SharePoint repair tool does not remove Microsoft 365 accounts, unsync libraries or delete cloud files.
+- OneDrive reset can trigger a full library resynchronisation and therefore requires the technician to type `REPAIR`.
+- Office document cache rebuild requires all Office files to be saved and synchronised first.
 
-Review prompts before clearing caches, resetting OneDrive or running system repairs.
+## Author
+
+Dewald Pretorius — L2 IT Support Engineer
