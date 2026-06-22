@@ -156,6 +156,12 @@ Desktop\SharePoint_Sync_Repair_Logs
 - OneDrive reset therefore requires the technician to type `REPAIR`.
 - Office document cache rebuild requires all Office files to be saved and synchronised first.
 
+## Validation status
+
+This toolkit has been tested successfully by the author on his own Windows machines with Microsoft 365 desktop applications, OneDrive and SharePoint library sync. The documented diagnostic and guarded repair workflows completed as intended in those environments.
+
+Results may vary with the Windows and Microsoft 365 build, OneDrive sync configuration, SharePoint tenant settings, library permissions, user profile, Office cache state, security policy, network conditions and organisation-specific configuration. Successful author testing does not guarantee identical behaviour in every environment, so use `-DryRun` and validate on a non-critical profile or library when introducing the toolkit to a new setup.
+
 ## Author
 
 Dewald Pretorius — L2 IT Support Engineer
